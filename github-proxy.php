@@ -42,9 +42,12 @@ class GitHubProxy
 
         $this->setCorsHeaders();
 
-        // Get parameters
+        // Get parameters (strip any anchor fragment from file path)
         $repo = $_GET['repo'] ?? null;
         $file = $_GET['file'] ?? null;
+        if ($file !== null) {
+            $file = strtok($file, '#');
+        }
         $refresh = isset($_GET['refresh']);
 
         if (!$repo || !$file) {
@@ -133,6 +136,9 @@ class GitHubProxy
             $parsedown = new Parsedown();
             $content = $parsedown->text($content);
 
+            // Add IDs to headings for anchor linking (matches GitHub's slug format)
+            $content = $this->addHeadingIds($content);
+
             // Rewrite relative URLs to absolute GitHub URLs
             if ($this->config['response']['rewrite_relative_urls'] ?? true) {
                 $content = $this->rewriteRelativeUrls($content, $repo, $file);
@@ -149,6 +155,24 @@ class GitHubProxy
         $this->cache->save($tsItem);
 
         return $content;
+    }
+
+    private function addHeadingIds($html)
+    {
+        return preg_replace_callback(
+            '/<(h[1-6])>(.*?)<\/\1>/i',
+            function ($matches) {
+                $tag = $matches[1];
+                $text = $matches[2];
+                // Generate GitHub-style slug: lowercase, strip HTML tags, replace spaces with hyphens, remove non-alphanumeric
+                $slug = strip_tags($text);
+                $slug = strtolower($slug);
+                $slug = preg_replace('/[^\w\s-]/', '', $slug);
+                $slug = preg_replace('/[\s]+/', '-', trim($slug));
+                return '<' . $tag . ' id="' . $slug . '">' . $text . '</' . $tag . '>';
+            },
+            $html
+        );
     }
 
     private function rewriteRelativeUrls($html, $repo, $file)

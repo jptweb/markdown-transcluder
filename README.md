@@ -67,7 +67,7 @@ Don't want to write the HTML by hand? Open `generate-embed.html` in your browser
 | Attribute | Required | Description |
 |-----------|----------|-------------|
 | `data-repo` | Yes | GitHub repository (`username/repo-name`) |
-| `data-file` | Yes | File path in repository |
+| `data-file` | Yes | File path in repository (supports `#anchor` to scroll to a section) |
 | `data-proxy-url` | No | URL to your proxy (defaults to `./github-proxy.php`) |
 | `data-auto-refresh` | No | `"true"` to enable periodic refresh |
 | `data-refresh-interval` | No | Refresh interval in seconds (default: 300) |
@@ -119,6 +119,7 @@ window.initGitHubNotesWidget('.my-selector', {
 - **Syntax highlighting** — embedded Prism.js (Dart, C-like, and more)
 - **GitHub-style theme** — typography, code blocks, tables, blockquotes
 - **Error handling** — retry logic with fallback "View on GitHub" link when all retries fail
+- **Anchor linking** — link to a specific section with `data-file="notes.md#section-name"` and the widget auto-scrolls to that heading after loading
 - **Clickable header** — repo/file name in widget header links directly to the file on GitHub
 - **Auto-refresh** — optional periodic content updates
 - **Responsive** — mobile-friendly layout

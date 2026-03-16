@@ -163,6 +163,7 @@
             const match = url.match(/github\.com\/([^/]+\/[^/]+)\/blob\/[^/]+\/(.+)/);
             if (match) {
                 document.getElementById('repo').value = match[1];
+                // Keep anchor in file path — the widget handles stripping it
                 document.getElementById('file').value = decodeURIComponent(match[2]);
                 generate();
             } else {

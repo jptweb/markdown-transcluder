@@ -110,7 +110,10 @@ class GitHubNotesWidget {
         };
 
         this.repo = element.dataset.repo;
-        this.file = element.dataset.file;
+        // Strip any anchor from the file path and store separately
+        const fileParts = (element.dataset.file || '').split('#');
+        this.file = fileParts[0];
+        this.anchor = element.dataset.anchor || fileParts[1] || null;
         this.cacheDuration = element.dataset.cacheDuration || null;
 
         this.retryCount = 0;
@@ -194,6 +197,14 @@ class GitHubNotesWidget {
 
             // Apply syntax highlighting to code blocks
             this.applySyntaxHighlighting();
+
+            // Scroll to anchor if specified
+            if (this.anchor) {
+                const target = contentDiv.querySelector('#' + CSS.escape(this.anchor));
+                if (target) {
+                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                }
+            }
 
             if (this.options.showLastUpdated && lastUpdatedSpan) {
                 const lastUpdated = new Date(data.timestamp * 1000);

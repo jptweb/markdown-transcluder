@@ -1,0 +1,33 @@
+# Dependencies
+vendor/
+composer.lock
+
+# Environment and config
+.env
+config.php
+config-local.php
+
+# Cache
+cache/
+*.cache
+
+# Logs
+*.log
+logs/
+
+# Dev session logs
+CLAUDE.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/

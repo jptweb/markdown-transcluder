@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Transcluder — Embed Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #24292f;
+            line-height: 1.6;
+        }
+        h1 { margin-bottom: 8px; font-size: 1.5em; }
+        .subtitle { color: #656d76; margin-bottom: 24px; }
+        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+        .hint { color: #656d76; font-size: 12px; margin-bottom: 8px; }
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+        input:focus { outline: none; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.15); }
+        .field-group { margin-bottom: 4px; }
+        .options-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .options-row .field-group { flex: 1; }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .checkbox-group input { width: auto; margin: 0; }
+        .checkbox-group label { margin: 0; font-weight: normal; }
+        .output-section {
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        .output-section h2 { font-size: 1.1em; margin-bottom: 12px; }
+        .output-section h3 { font-size: 0.95em; margin: 16px 0 8px; color: #656d76; }
+        pre {
+            background-color: #ffffff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 12px;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #24292f;
+        }
+        .copy-btn:hover { background-color: #e7eaed; }
+        .copy-btn.copied { background-color: #2da44e; color: white; border-color: #2da44e; }
+        .error { color: #d1242f; font-size: 13px; margin-top: -12px; margin-bottom: 12px; }
+        .divider { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+    </style>
+</head>
+<body>
+    <h1>Markdown Transcluder — Embed Generator</h1>
+    <p class="subtitle">Paste a GitHub URL or fill in the fields to generate embed code.</p>
+
+    <div class="field-group">
+        <label for="github-url">GitHub URL</label>
+        <div class="hint">e.g. https://github.com/user/repo/blob/main/notes/lecture-01.md</div>
+        <input type="url" id="github-url" placeholder="https://github.com/..." autocomplete="off">
+        <div id="url-error" class="error" hidden></div>
+    </div>
+
+    <p style="text-align: center; color: #656d76; margin-bottom: 16px;">- or fill in manually -</p>
+
+    <div class="field-group">
+        <label for="repo">Repository</label>
+        <div class="hint">username/repo-name</div>
+        <input type="text" id="repo" placeholder="jptweb/IGME-340-Shared">
+    </div>
+
+    <div class="field-group">
+        <label for="file">File Path</label>
+        <div class="hint">Path to the file in the repository</div>
+        <input type="text" id="file" placeholder="weekly/3A.md">
+    </div>
+
+    <hr class="divider">
+
+    <div class="field-group">
+        <label for="proxy-url">Proxy URL</label>
+        <div class="hint">Full URL to your github-proxy.php</div>
+        <input type="url" id="proxy-url" placeholder="https://your-server.com/path/to/github-proxy.php">
+    </div>
+
+    <div class="field-group">
+        <label for="asset-base">Asset Base URL</label>
+        <div class="hint">Base URL where widget CSS/JS are hosted (no trailing slash)</div>
+        <input type="url" id="asset-base" placeholder="https://your-server.com/path/to">
+    </div>
+
+    <div class="options-row">
+        <div class="field-group">
+            <label for="loading-text">Loading Text (optional)</label>
+            <input type="text" id="loading-text" placeholder="Loading notes...">
+        </div>
+    </div>
+
+    <div class="checkbox-group">
+        <input type="checkbox" id="auto-refresh">
+        <label for="auto-refresh">Enable auto-refresh (every 5 min)</label>
+    </div>
+
+    <div class="checkbox-group">
+        <input type="checkbox" id="include-noscript" checked>
+        <label for="include-noscript">Include &lt;noscript&gt; fallback</label>
+    </div>
+
+    <div class="output-section">
+        <h2>Embed Code</h2>
+
+        <h3>Full embed (first time on a page)</h3>
+        <pre id="full-output"><code>Fill in the fields above to generate code.</code><button class="copy-btn" data-target="full-output" hidden>Copy</button></pre>
+
+        <h3>Additional widget (same page, CSS/JS already included)</h3>
+        <pre id="short-output"><code></code><button class="copy-btn" data-target="short-output" hidden>Copy</button></pre>
+    </div>
+
+    <script>
+        const fields = ['github-url', 'repo', 'file', 'proxy-url', 'asset-base', 'loading-text', 'auto-refresh', 'include-noscript'];
+
+        // Parse GitHub URL into repo + file
+        document.getElementById('github-url').addEventListener('input', function() {
+            const url = this.value.trim();
+            const errorEl = document.getElementById('url-error');
+            errorEl.hidden = true;
+
+            if (!url) return;
+
+            // Match: github.com/owner/repo/blob/branch/path/to/file
+            const match = url.match(/github\.com\/([^/]+\/[^/]+)\/blob\/[^/]+\/(.+)/);
+            if (match) {
+                document.getElementById('repo').value = match[1];
+                document.getElementById('file').value = decodeURIComponent(match[2]);
+                generate();
+            } else {
+                errorEl.textContent = 'Could not parse URL. Expected format: github.com/user/repo/blob/branch/path/to/file';
+                errorEl.hidden = false;
+            }
+        });
+
+        // Re-generate on any field change
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', generate);
+            el.addEventListener('change', generate);
+        });
+
+        function generate() {
+            const repo = document.getElementById('repo').value.trim();
+            const file = document.getElementById('file').value.trim();
+            const proxyUrl = document.getElementById('proxy-url').value.trim();
+            const assetBase = document.getElementById('asset-base').value.trim().replace(/\/+$/, '');
+            const loadingText = document.getElementById('loading-text').value.trim();
+            const autoRefresh = document.getElementById('auto-refresh').checked;
+            const includeNoscript = document.getElementById('include-noscript').checked;
+
+            const fullEl = document.getElementById('full-output');
+            const shortEl = document.getElementById('short-output');
+
+            if (!repo || !file) {
+                fullEl.querySelector('code').textContent = 'Fill in repository and file path to generate code.';
+                shortEl.querySelector('code').textContent = '';
+                fullEl.querySelector('.copy-btn').hidden = true;
+                shortEl.querySelector('.copy-btn').hidden = true;
+                return;
+            }
+
+            // Build data attributes
+            let attrs = '';
+            attrs += `\n     data-repo="${escapeAttr(repo)}"`;
+            attrs += `\n     data-file="${escapeAttr(file)}"`;
+            if (proxyUrl) attrs += `\n     data-proxy-url="${escapeAttr(proxyUrl)}"`;
+            if (loadingText) attrs += `\n     data-loading-text="${escapeAttr(loadingText)}"`;
+            if (autoRefresh) {
+                attrs += `\n     data-auto-refresh="true"`;
+                attrs += `\n     data-refresh-interval="300"`;
+            }
+
+            const widgetDiv = `<div class="github-notes"${attrs}>\n</div>`;
+
+            const githubUrl = `https://github.com/${repo}/blob/main/${file}`;
+            const noscriptBlock = includeNoscript
+                ? `\n\n<noscript>\n  <p>JavaScript is required to display this content. <a href="${githubUrl}" target="_blank">View on GitHub</a></p>\n</noscript>`
+                : '';
+
+            // CSS/JS references
+            const cssUrl = assetBase ? `${assetBase}/github-embed.css` : 'github-embed.css';
+            const jsUrl = assetBase ? `${assetBase}/github-embed.js` : 'github-embed.js';
+
+            const fullCode = `<link rel="stylesheet" href="${cssUrl}">\n<script src="${jsUrl}"><\/script>\n\n${widgetDiv}${noscriptBlock}`;
+            const shortCode = widgetDiv + noscriptBlock;
+
+            fullEl.querySelector('code').textContent = fullCode;
+            shortEl.querySelector('code').textContent = shortCode;
+            fullEl.querySelector('.copy-btn').hidden = false;
+            shortEl.querySelector('.copy-btn').hidden = false;
+        }
+
+        function escapeAttr(str) {
+            return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Copy buttons
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('copy-btn')) return;
+            const targetId = e.target.dataset.target;
+            const code = document.getElementById(targetId).querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                e.target.textContent = 'Copied!';
+                e.target.classList.add('copied');
+                setTimeout(() => {
+                    e.target.textContent = 'Copy';
+                    e.target.classList.remove('copied');
+                }, 2000);
+            });
+        });
+
+        // =====================================================
+        // DEFAULT BASE URL — change this to match your server
+        // =====================================================
+        const DEFAULT_BASE_URL = '';
+
+        // Pre-fill with defaults so embeds work immediately
+        (function() {
+            const base = DEFAULT_BASE_URL || (window.location.origin + window.location.pathname.replace(/\/[^/]*$/, ''));
+            document.getElementById('proxy-url').value = base + '/github-proxy.php';
+            document.getElementById('asset-base').value = base;
+        })();
+    </script>
+</body>
+</html>

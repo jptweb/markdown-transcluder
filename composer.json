@@ -1,0 +1,13 @@
+{
+    "name": "local/mycourses-github-reader",
+    "description": "GitHub notes reader for MyCourses integration",
+    "require": {
+        "phpfastcache/phpfastcache": "^9.0",
+        "erusev/parsedown": "^1.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "GitHubReader\\": "src/"
+        }
+    }
+}

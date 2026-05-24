@@ -3,96 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Notes Widget - Example</title>
+    <title>Markdown Transcluder - Local Test</title>
     <link rel="stylesheet" href="github-embed.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #24292f;
+            line-height: 1.6;
+        }
+        h1 { margin-bottom: 4px; font-size: 1.6em; }
+        .subtitle { color: #656d76; margin-bottom: 32px; font-size: 15px; }
+        h2 {
+            margin-top: 48px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #d0d7de;
+            padding-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .desc { color: #57606a; font-size: 14px; margin-bottom: 12px; }
+        .note {
+            background-color: #ddf4ff;
+            border: 1px solid #54aeff;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .note code {
+            background-color: rgba(84,174,255,0.15);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-family: ui-monospace, monospace;
+        }
+        hr { border: none; border-top: 1px solid #d0d7de; margin: 48px 0 0; }
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
-        <h1>GitHub Notes Widget Examples</h1>
-        <p>These examples show how to embed GitHub notes in MyCourses.</p>
 
-        <!-- Basic Example -->
-        <h2>Basic Example</h2>
-        <div class="github-notes"
-             data-repo="your-username/your-repo"
-             data-file="notes/lecture-01.md">
-        </div>
+    <h1>Markdown Transcluder - Local Test</h1>
+    <p class="subtitle">Testing against <strong>jptweb/IGME-340-Shared</strong>. Proxy: <code>./github-proxy.php</code></p>
 
-        <!-- Example with Custom Options -->
-        <h2>Example with Auto-Refresh</h2>
-        <div class="github-notes"
-             data-repo="your-username/your-repo"
-             data-file="notes/lecture-02.md"
-             data-auto-refresh="true"
-             data-refresh-interval="300"
-             data-loading-text="Loading latest notes...">
-        </div>
-
-        <!-- Example with Custom Proxy URL -->
-        <h2>Example with Custom Proxy</h2>
-        <div class="github-notes"
-             data-repo="your-username/your-repo"
-             data-file="README.md"
-             data-proxy-url="https://your-domain.com/github-proxy.php">
-        </div>
-
-        <!-- Manual Initialization Example -->
-        <h2>Manual Initialization</h2>
-        <div id="manual-widget" class="github-notes-manual">
-            <p>This widget will be initialized manually...</p>
-        </div>
-
-        <h2>Usage Instructions</h2>
-        <div style="background-color: #f6f8fa; padding: 20px; border-radius: 6px; margin-top: 20px;">
-            <h3>For MyCourses Integration:</h3>
-            <ol>
-                <li><strong>Upload Files:</strong> Upload <code>github-proxy.php</code>, <code>config.php</code>, and the <code>vendor/</code> folder to your web server.</li>
-                <li><strong>Configure:</strong> Edit <code>config.php</code> with your GitHub token and settings.</li>
-                <li><strong>Install Dependencies:</strong> Run <code>composer install</code> on your server.</li>
-                <li><strong>Add to MyCourses:</strong> In MyCourses, create an HTML content item and paste:</li>
-            </ol>
-
-            <pre style="background-color: white; padding: 15px; border-radius: 4px; overflow-x: auto;"><code>&lt;!-- Include CSS --&gt;
-&lt;link rel="stylesheet" href="https://your-domain.com/path/to/github-embed.css"&gt;
-
-&lt;!-- Include JavaScript --&gt;
-&lt;script src="https://your-domain.com/path/to/github-embed.js"&gt;&lt;/script&gt;
-
-&lt;!-- GitHub Notes Widget --&gt;
-&lt;div class="github-notes"
-     data-repo="your-username/your-repo"
-     data-file="notes/your-file.md"
-     data-proxy-url="https://your-domain.com/path/to/github-proxy.php"&gt;
-&lt;/div&gt;</code></pre>
-
-            <h3>Required Data Attributes:</h3>
-            <ul>
-                <li><code>data-repo</code>: Your GitHub repository in format "username/repo-name"</li>
-                <li><code>data-file</code>: Path to the file in your repository</li>
-            </ul>
-
-            <h3>Optional Data Attributes:</h3>
-            <ul>
-                <li><code>data-proxy-url</code>: Custom URL to your proxy service</li>
-                <li><code>data-auto-refresh="true"</code>: Enable automatic content refresh</li>
-                <li><code>data-refresh-interval="300"</code>: Refresh interval in seconds</li>
-                <li><code>data-loading-text</code>: Custom loading message</li>
-            </ul>
-        </div>
+    <!-- ============================================================ -->
+    <h2>1. Basic - Dart Fundamentals study guide</h2>
+    <p class="desc">Loads the study guide markdown from GitHub with default options.</p>
+    <div class="github-notes"
+         data-repo="jptweb/IGME-340-Shared"
+         data-file="study-guides/01-dart-fundamentals.md">
     </div>
 
-    <script src="github-embed.js"></script>
+    <!-- ============================================================ -->
+    <h2>2. YouTube Embeds enabled</h2>
+    <div class="note">
+        Same file with <code>data-youtube-embeds="true"</code>. Any standalone YouTube link in the markdown is upgraded to an embedded player.
+    </div>
+    <div class="github-notes"
+         data-repo="jptweb/IGME-340-Shared"
+         data-file="study-guides/01-dart-fundamentals.md"
+         data-youtube-embeds="true">
+    </div>
 
-    <!-- Manual initialization example -->
-    <script>
-        // Example of manual initialization after page load
-        setTimeout(() => {
-            window.initGitHubNotesWidget('#manual-widget', {
-                repo: 'your-username/your-repo',
-                file: 'examples/manual-example.md',
-                proxyUrl: './github-proxy.php'
-            });
-        }, 2000);
-    </script>
+    <hr>
+
+    <script src="github-embed.js"></script>
 </body>
 </html>

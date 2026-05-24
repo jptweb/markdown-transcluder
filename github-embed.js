@@ -106,6 +106,7 @@ class GitHubNotesWidget {
             loadingText: options.loadingText || 'Loading notes...',
             errorRetryDelay: options.errorRetryDelay || 5000,
             maxRetries: options.maxRetries || 3,
+            youtubeEmbeds: options.youtubeEmbeds || false,
             ...options
         };
 
@@ -197,6 +198,9 @@ class GitHubNotesWidget {
 
             // Apply syntax highlighting to code blocks
             this.applySyntaxHighlighting();
+
+            // Upgrade YouTube links to embedded players if enabled
+            this.processYouTubeEmbeds();
 
             // Scroll to anchor if specified
             if (this.anchor) {
@@ -311,6 +315,58 @@ class GitHubNotesWidget {
         });
     }
 
+    processYouTubeEmbeds() {
+        if (!this.options.youtubeEmbeds) return;
+
+        const contentDiv = this.element.querySelector('.github-notes-content');
+        if (!contentDiv) return;
+
+        // Matches all common YouTube URL formats and captures the 11-char video ID.
+        // Handles: youtube.com/watch?v=, youtu.be/, /shorts/, /live/, /embed/, m.youtube.com
+        const YT_ID_RE = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?|shorts|live)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+
+        // Captures optional timestamp: ?t=1h30m45, &t=90s, ?t=45, etc.
+        const YT_TS_RE = /[?&]t=(?:(\d+)h)?(?:(\d+)m)?(\d+)/i;
+
+        // Only upgrade YouTube links that are the sole content of a <p> — avoids
+        // converting links that appear inline within a sentence.
+        contentDiv.querySelectorAll('p').forEach(p => {
+            if (p.children.length !== 1) return;
+            const link = p.firstElementChild;
+            if (link.tagName !== 'A') return;
+            // Ensure no surrounding text nodes beyond the <a>
+            if (p.textContent.trim() !== link.textContent.trim()) return;
+
+            const href = link.href;
+            const idMatch = href.match(YT_ID_RE);
+            if (!idMatch) return;
+
+            const videoId = idMatch[1];
+
+            let startParam = '';
+            const tsMatch = href.match(YT_TS_RE);
+            if (tsMatch) {
+                const h = parseInt(tsMatch[1] || 0, 10);
+                const m = parseInt(tsMatch[2] || 0, 10);
+                const s = parseInt(tsMatch[3] || 0, 10);
+                const totalSeconds = h * 3600 + m * 60 + s;
+                if (totalSeconds > 0) startParam = '?start=' + totalSeconds;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'yt-embed-wrapper';
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://www.youtube-nocookie.com/embed/' + videoId + startParam;
+            iframe.title = 'YouTube video player';
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+            iframe.setAttribute('allowfullscreen', '');
+            iframe.setAttribute('loading', 'lazy');
+            wrapper.appendChild(iframe);
+            p.replaceWith(wrapper);
+        });
+    }
+
     refresh() {
         this.retryCount = 0;
         this.loadContent(true);
@@ -351,6 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (element.dataset.autoRefresh) options.autoRefresh = element.dataset.autoRefresh === 'true';
         if (element.dataset.refreshInterval) options.refreshInterval = parseInt(element.dataset.refreshInterval) * 1000;
         if (element.dataset.loadingText) options.loadingText = element.dataset.loadingText;
+        if (element.dataset.youtubeEmbeds) options.youtubeEmbeds = element.dataset.youtubeEmbeds === 'true';
 
         // Create widget instance and store reference
         element.gitHubWidget = new GitHubNotesWidget(element, options);

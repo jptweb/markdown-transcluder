@@ -97,15 +97,7 @@ class GitHubProxy
             $headers[] = 'Authorization: Bearer ' . $this->config['github']['token'];
         }
 
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => implode("\r\n", $headers),
-                'timeout' => $this->config['response']['timeout']
-            ]
-        ]);
-
-        $response = @file_get_contents($url, false, $context);
+        $response = $this->httpGet($url, $headers);
 
         if ($response === false) {
             // Try to serve stale cache if available (re-check in case TTL config allows it)
@@ -245,6 +237,40 @@ class GitHubProxy
         }
 
         return implode('/', $parts) . $fragment;
+    }
+
+    private function httpGet($url, array $headers)
+    {
+        // Prefer file_get_contents (requires allow_url_fopen = On — standard on production servers)
+        if (ini_get('allow_url_fopen')) {
+            $context = stream_context_create([
+                'http' => [
+                    'method'  => 'GET',
+                    'header'  => implode("\r\n", $headers),
+                    'timeout' => $this->config['response']['timeout'],
+                ]
+            ]);
+            $result = @file_get_contents($url, false, $context);
+            if ($result !== false) return $result;
+        }
+
+        // Fallback: cURL (works when allow_url_fopen is disabled, e.g. Local by Flywheel)
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER     => $headers,
+                CURLOPT_TIMEOUT        => $this->config['response']['timeout'],
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ]);
+            $body  = curl_exec($ch);
+            $errno = curl_errno($ch);
+            curl_close($ch);
+            return ($body !== false && $errno === 0) ? $body : false;
+        }
+
+        return false;
     }
 
     private function isMarkdownFile($filename)

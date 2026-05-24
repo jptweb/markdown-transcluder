@@ -72,6 +72,7 @@ Don't want to write the HTML by hand? Open `generate-embed.html` in your browser
 | `data-auto-refresh` | No | `"true"` to enable periodic refresh |
 | `data-refresh-interval` | No | Refresh interval in seconds (default: 300) |
 | `data-loading-text` | No | Custom loading message |
+| `data-youtube-embeds` | No | `"true"` to upgrade YouTube links to embedded players (off by default) |
 
 ### Server Config (`config.php`)
 
@@ -106,7 +107,8 @@ window.initGitHubNotesWidget('.my-selector', {
     showRefreshButton: true,
     loadingText: 'Loading notes...',
     maxRetries: 3,
-    errorRetryDelay: 5000
+    errorRetryDelay: 5000,
+    youtubeEmbeds: false
 });
 ```
 
@@ -119,6 +121,7 @@ window.initGitHubNotesWidget('.my-selector', {
 - **Syntax highlighting** — embedded Prism.js (Dart, C-like, and more)
 - **GitHub-style theme** — typography, code blocks, tables, blockquotes
 - **Error handling** — retry logic with fallback "View on GitHub" link when all retries fail
+- **YouTube embeds** — opt-in (`data-youtube-embeds="true"`) upgrades standalone YouTube links and thumbnail image-links to embedded `<iframe>` players; supports all YouTube URL formats and timestamps; uses privacy-enhanced `youtube-nocookie.com`
 - **Anchor linking** — link to a specific section with `data-file="notes.md#section-name"` and the widget auto-scrolls to that heading after loading
 - **Clickable header** — repo/file name in widget header links directly to the file on GitHub
 - **Auto-refresh** — optional periodic content updates

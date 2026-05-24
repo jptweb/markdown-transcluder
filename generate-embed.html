@@ -134,6 +134,11 @@
     </div>
 
     <div class="checkbox-group">
+        <input type="checkbox" id="youtube-embeds">
+        <label for="youtube-embeds">Enable YouTube embeds (converts YouTube links/thumbnails to embedded players)</label>
+    </div>
+
+    <div class="checkbox-group">
         <input type="checkbox" id="include-noscript" checked>
         <label for="include-noscript">Include &lt;noscript&gt; fallback</label>
     </div>
@@ -149,7 +154,7 @@
     </div>
 
     <script>
-        const fields = ['github-url', 'repo', 'file', 'proxy-url', 'asset-base', 'loading-text', 'auto-refresh', 'include-noscript'];
+        const fields = ['github-url', 'repo', 'file', 'proxy-url', 'asset-base', 'loading-text', 'auto-refresh', 'youtube-embeds', 'include-noscript'];
 
         // Parse GitHub URL into repo + file
         document.getElementById('github-url').addEventListener('input', function() {
@@ -186,6 +191,7 @@
             const assetBase = document.getElementById('asset-base').value.trim().replace(/\/+$/, '');
             const loadingText = document.getElementById('loading-text').value.trim();
             const autoRefresh = document.getElementById('auto-refresh').checked;
+            const youtubeEmbeds = document.getElementById('youtube-embeds').checked;
             const includeNoscript = document.getElementById('include-noscript').checked;
 
             const fullEl = document.getElementById('full-output');
@@ -209,6 +215,7 @@
                 attrs += `\n     data-auto-refresh="true"`;
                 attrs += `\n     data-refresh-interval="300"`;
             }
+            if (youtubeEmbeds) attrs += `\n     data-youtube-embeds="true"`;
 
             const widgetDiv = `<div class="github-notes"${attrs}>\n</div>`;
 

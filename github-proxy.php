@@ -9,6 +9,33 @@ require_once 'vendor/autoload.php';
 use Phpfastcache\CacheManager;
 use Phpfastcache\Config\ConfigurationOption;
 
+/**
+ * Parsedown treats only a subset of ASCII punctuation as escapable, so a
+ * CommonMark escape such as "\&" -- which GitHub renders as a bare "&" --
+ * arrives with the backslash still attached. TOC generators emit "\&"
+ * routinely, so the stray backslash shows up in rendered link text.
+ *
+ * Widen the set to CommonMark's full punctuation list. The character is
+ * HTML-escaped on the way out because Parsedown inserts an escape sequence's
+ * result as raw markup: returning a bare "<" for "\<" would open a real tag.
+ */
+class TranscluderParsedown extends Parsedown
+{
+    // CommonMark: any ASCII punctuation character may be backslash-escaped.
+    private static $escapable = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+
+    protected function inlineEscapeSequence($Excerpt)
+    {
+        if (isset($Excerpt['text'][1])
+            and strpos(self::$escapable, $Excerpt['text'][1]) !== false) {
+            return array(
+                'markup' => htmlspecialchars($Excerpt['text'][1], ENT_QUOTES, 'UTF-8'),
+                'extent' => 2,
+            );
+        }
+    }
+}
+
 class GitHubProxy
 {
     private $config;
@@ -125,7 +152,7 @@ class GitHubProxy
         // Convert markdown to HTML if enabled
         if ($this->config['response']['enable_markdown_conversion'] &&
             $this->isMarkdownFile($file)) {
-            $parsedown = new Parsedown();
+            $parsedown = new TranscluderParsedown();
             $content = $parsedown->text($content);
 
             // Add IDs to headings for anchor linking (matches GitHub's slug format)

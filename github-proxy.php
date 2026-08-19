@@ -151,16 +151,36 @@ class GitHubProxy
 
     private function addHeadingIds($html)
     {
+        // Tracks how many times each slug has been emitted. GitHub disambiguates
+        // repeated headings by appending -1, -2, ... to every occurrence after the
+        // first, and anchors written against a GitHub-rendered page assume that.
+        $seen = [];
+
         return preg_replace_callback(
             '/<(h[1-6])>(.*?)<\/\1>/i',
-            function ($matches) {
+            function ($matches) use (&$seen) {
                 $tag = $matches[1];
                 $text = $matches[2];
                 // Generate GitHub-style slug: lowercase, strip HTML tags, replace spaces with hyphens, remove non-alphanumeric
                 $slug = strip_tags($text);
+                // Parsedown has already escaped &, <, > and quotes into entities. Decode
+                // them first so the slug sees the real character -- otherwise "&amp;"
+                // would leave the letters "amp" behind in the slug.
+                $slug = html_entity_decode($slug, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 $slug = strtolower($slug);
                 $slug = preg_replace('/[^\w\s-]/', '', $slug);
-                $slug = preg_replace('/[\s]+/', '-', trim($slug));
+                // One hyphen per whitespace character, not per run: GitHub does not
+                // collapse the double space left behind by a removed "&".
+                $slug = preg_replace('/[\s]/', '-', trim($slug));
+
+                if (isset($seen[$slug])) {
+                    $base = $slug;
+                    $slug = $base . '-' . $seen[$base];
+                    $seen[$base]++;
+                } else {
+                    $seen[$slug] = 1;
+                }
+
                 return '<' . $tag . ' id="' . $slug . '">' . $text . '</' . $tag . '>';
             },
             $html
